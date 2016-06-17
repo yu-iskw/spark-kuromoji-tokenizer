@@ -1,24 +1,46 @@
 // Your sbt build file. Guides on how to write one can be found at
 // http://www.scala-sbt.org/0.13/docs/index.html
 
-scalaVersion := "2.10.4"
+spName := "yu-iskw/spark-kuromoji-tokenizer"
 
-sparkVersion := "1.4.0"
+version := "1.0.0"
 
-spName := "yu-iskw/kuromoji-tokenizer"
-
-// Don't forget to set the version
-version := "0.0.1"
-
-// All Spark Packages need a license
 licenses := Seq("Apache-2.0" -> url("http://opensource.org/licenses/Apache-2.0"))
 
+scalaVersion := "2.11.7"
 
-// Add Spark components this package depends on, e.g, "mllib", ....
-// sparkComponents ++= Seq("sql", "mllib")
+crossScalaVersions := Seq("2.10.5", "2.11.7")
 
-// uncomment and change the value below to change the directory where your zip artifact will be created
-// spDistDirectory := target.value
+sparkVersion := "1.6.1"
 
-// add any Spark Package dependencies using spDependencies.
-// e.g. spDependencies += "databricks/spark-avro:0.1"
+licenses := Seq("Apache-2.0" -> url("http://opensource.org/licenses/Apache-2.0"))
+
+sparkComponents ++= Seq("mllib", "sql")
+
+spAppendScalaVersion := true
+
+spIncludeMaven := true
+
+spIgnoreProvided := true
+
+test in assembly := {}
+
+val testSparkVersion = settingKey[String]("The version of Spark to test against.")
+
+testSparkVersion := sys.props.getOrElse("spark.testVersion", sparkVersion.value)
+
+// Can't parallelly execute in test
+parallelExecution in Test := false
+
+fork in Test := true
+
+javaOptions ++= Seq("-Xmx2G", "-XX:MaxPermSize=256m")
+
+libraryDependencies ++= Seq(
+  "org.atilika.kuromoji" % "kuromoji" % "0.7.7",
+  "org.scalatest" %% "scalatest" % "2.2.6" % "test"
+)
+
+resolvers ++= Seq(
+  "Atilika Open Source repository" at "http://www.atilika.org/nexus/content/repositories/atilika"
+)
