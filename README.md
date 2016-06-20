@@ -1,5 +1,6 @@
 # Kuromoji Tokenizer for Spark DataFrames
 
+[![License](http://img.shields.io/:license-Apache%202-red.svg)](http://www.apache.org/licenses/LICENSE-2.0.txt)
 [![Build Status](https://travis-ci.org/yu-iskw/spark-kuromoji-tokenizer.svg?branch=master)](https://travis-ci.org/yu-iskw/spark-kuromoji-tokenizer)
 [![codecov](https://codecov.io/gh/yu-iskw/spark-kuromoji-tokenizer/branch/master/graph/badge.svg)](https://codecov.io/gh/yu-iskw/spark-kuromoji-tokenizer)
 
