@@ -42,8 +42,8 @@ class KuromojiTokenizer(override val uid: String)
 
   // Sets the default values
   setDefault(
-    mode -> KTokenizer.Mode.NORMAL,
-    dictPath -> null
+    mode -> "NORMAL",
+    dictPath -> KuromojiTokenizer.DICT_PATH_NULL_VALUE
   )
 
   def this() = this(Identifiable.randomUID("kuromojitok"))
@@ -55,7 +55,7 @@ class KuromojiTokenizer(override val uid: String)
   def setOutputCol(value: String): this.type = set(outputCol, value)
 
   /** @group expertSetParam */
-  def setMode(value: KTokenizer.Mode): this.type = set(mode, value)
+  def setMode(value: String): this.type = set(mode, value)
 
   /** @group expertSetParam */
   def setDictPath(value: String): this.type = set(dictPath, value)
@@ -80,9 +80,12 @@ class KuromojiTokenizer(override val uid: String)
   }
 
   protected def createTransformFunc: String => Seq[String] = {
-    Option($(dictPath)).isDefined match {
-      case true => CustomKuromojiTokenizer.tokenize(_, $(mode)).map(_.getSurfaceForm)
-      case false => CustomKuromojiTokenizer.tokenize(_, $(mode), $(dictPath)).map(_.getSurfaceForm)
+    val modeClass = KuromojiTokenizer.addressMode($(mode))
+    $(dictPath) match {
+      case KuromojiTokenizer.DICT_PATH_NULL_VALUE =>
+        CustomKuromojiTokenizer.tokenize(_, modeClass).map(_.getSurfaceForm)
+      case _ =>
+        CustomKuromojiTokenizer.tokenize(_, modeClass, $(dictPath)).map(_.getSurfaceForm)
     }
   }
 
@@ -99,7 +102,20 @@ class KuromojiTokenizer(override val uid: String)
   * A Spark object to deal with Kuromoji tokenizer
   */
 object KuromojiTokenizer extends DefaultParamsReadable[KuromojiTokenizer] {
+
+  private[feature] val DICT_PATH_NULL_VALUE = "NULL_VALUE"
+
   override def load(path: String): KuromojiTokenizer = super.load(path)
+
+  private[feature] def addressMode(mode: String): KTokenizer.Mode = {
+    mode match {
+      case "NORMAL" => KTokenizer.Mode.NORMAL
+      case "SEARCH" => KTokenizer.Mode.SEARCH
+      case "EXTENDED" => KTokenizer.Mode.EXTENDED
+      case _ => throw new IllegalArgumentException(s"${mode} is invalid. " +
+        s"You should go with NORMAL, SEARCH or EXTENDED")
+    }
+  }
 }
 
 
@@ -114,10 +130,10 @@ trait KuromojiTokenizerParams extends Params with HasInputCol with HasOutputCol 
     * Set the Kuromoji mode
     * @group expertParam
     */
-  final val mode = new Param[KTokenizer.Mode](this, "mode", "mode")
+  final val mode = new Param[String](this, "mode", "mode")
 
   /** @group expertGetParam */
-  def getMode: KTokenizer.Mode = $(mode)
+  def getMode: String = $(mode)
 
   /**
     * Set the path to the dictionary for Kuromoji

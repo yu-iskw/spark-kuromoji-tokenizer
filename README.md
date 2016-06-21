@@ -32,7 +32,7 @@ import org.atilika.kuromoji.{Tokenizer => KTokenizer}
 val kuromoji = new KuromojiTokenizer()
   .setInputCol("text")
   .setOutputCol("tokens")
-  .setMode(KTokenizer.Mode.NORMAL) // Optional
+  .setMode("NORMAL")               // Optional
   .setDictPath(pathToDictionary)   // Optional
 val transformed = kuromoji.transform(df)
 ```
@@ -52,9 +52,15 @@ val transformed = kuromoji.transform(df)
 
 ### Required Parameters
 
-- `setInputCol`: Input column name. 
-- `setOutputCol`: Output column name.
+- `setInputCol`: Input column name as `String`.
+- `setOutputCol`: Output column name as `String`.
 
 ### Optional Expert Parameters
-- `setMode`: Kuromoji mode. Default value is `org.atilika.kuromoji.Tokenizer.Mode.Normal`.
+- `setMode`: Kuromoji mode. Default value is `NORMAL`. Others are `SEARCH` and `EXTENDED`.
 - `setDictPath`: Path to dictionary path.
+
+## Known Issues
+
+We still have an issue to save a dictionary.
+It would be great to save an using dictionary on Amazon S3 or HDFS.
+However, the saved data just holds a path to the using dictionary as `String`.

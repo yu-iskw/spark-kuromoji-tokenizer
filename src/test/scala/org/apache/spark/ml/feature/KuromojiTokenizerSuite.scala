@@ -17,6 +17,8 @@
 
 package org.apache.spark.ml.feature
 
+import java.io.File
+
 import org.atilika.kuromoji.{Tokenizer => KTokenizer}
 
 import org.apache.spark.SparkFunSuite
@@ -41,7 +43,9 @@ class KuromojiTokenizerSuite extends SparkFunSuite with MLlibTestSparkContext {
     val kuromoji = new KuromojiTokenizer()
       .setInputCol("text")
       .setOutputCol("tokens")
-      .setMode(KTokenizer.Mode.NORMAL)
+      .setMode("EXTENDED")
+    assert(kuromoji.getMode === "EXTENDED")
+
     val transformed = kuromoji.transform(df)
     val tokens = transformed.select("tokens").collect().head.getSeq(0).toSeq
     assert(tokens.size === 32)
@@ -51,5 +55,16 @@ class KuromojiTokenizerSuite extends SparkFunSuite with MLlibTestSparkContext {
     assert(tokens3.size === 29)
     val tokens4 = transformed.select("tokens").collect().apply(3).getSeq(0).toSeq
     assert(tokens4.size === 23)
+  }
+
+  test("save/load") {
+    val kuromoji = new KuromojiTokenizer()
+      .setInputCol("text")
+      .setOutputCol("tokens")
+      .setMode("EXTENDED")
+    val path = File.createTempFile("spark-kuromoji-tokenizer", "").getAbsolutePath
+    kuromoji.write.overwrite().save(path)
+    val loadedModel = KuromojiTokenizer.load(path)
+    assert(loadedModel.getMode === "EXTENDED")
   }
 }
