@@ -3,7 +3,7 @@
 
 spName := "yu-iskw/spark-kuromoji-tokenizer"
 
-version := "1.1.1"
+version := "1.1.2"
 
 licenses := Seq("Apache-2.0" -> url("http://opensource.org/licenses/Apache-2.0"))
 
