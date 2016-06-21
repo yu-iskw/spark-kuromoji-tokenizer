@@ -10,9 +10,22 @@ This is a Kuromoji tokenizer as a `Transformer` on Spark DataFrame.
 
 - Apache Spark: 1.6 or higher
 
+## Parameters
+
+### Required Parameters
+
+- `setInputCol`: Input column name as `String`.
+- `setOutputCol`: Output column name as `String`.
+
+### Optional Expert Parameters
+- `setMode`: Kuromoji mode. Default value is `NORMAL`. Others are `SEARCH` and `EXTENDED`.
+- `setDictPath`: Path to dictionary path.
+
 ## Example
 
 We can use this package like bellow:
+
+### Scala Example
 
 ```scala
 // Creates a sample data which has a column whose name is `text`.
@@ -47,17 +60,32 @@ val transformed = kuromoji.transform(df)
 |天皇は、この憲法の定める国事に関する行為のみを行ひ、国政に関する権能を有しない。          |[天皇, は, 、, この, 憲法, の, 定める, 国事, に関する, 行為, のみ, を, 行, ひ, 、, 国政, に関する, 権能, を, 有, し, ない, 。]                            |
 |天皇は、法律の定めるところにより、その国事に関する行為を委任することができる。           |[天皇, は, 、, 法律, の, 定める, ところ, により, 、, その, 国事, に関する, 行為, を, 委任, する, こと, が, できる, 。]                                   |
 
+### Java Example
 
-## Parameters
+The following is a Java example.
 
-### Required Parameters
+```java
+List<String> data = Arrays.asList(
+  "天皇は、日本国の象徴であり日本国民統合の象徴であつて、この地位は、主権の存する日本国民の総意に基く。",
+  "皇位は、世襲のものであつて、国会の議決した皇室典範 の定めるところにより、これを継承する。",
+  "天皇の国事に関するすべての行為には、内閣の助言と承認を必要とし、内閣が、その責任を負ふ。",
+  "天皇は、この憲法の定める国事に関する行為のみを行ひ、国政に関する権能を有しない。",
+  "天皇は、法律の定めるところにより、その国事に関する行為を委任することができる。"
+);
+JavaRDD<Row> rdd = jsc.parallelize(data).map((String text) -> {
+  return RowFactory.create(text);
+});
+StructType schema = DataTypes.createStructType(new StructField[]{
+  DataTypes.createStructField("text", DataTypes.StringType, false)
+});
+DataFrame df = jsql.createDataFrame(rdd, schema);
 
-- `setInputCol`: Input column name as `String`.
-- `setOutputCol`: Output column name as `String`.
-
-### Optional Expert Parameters
-- `setMode`: Kuromoji mode. Default value is `NORMAL`. Others are `SEARCH` and `EXTENDED`.
-- `setDictPath`: Path to dictionary path.
+KuromojiTokenizer tokenizer = new KuromojiTokenizer()
+  .setInputCol("text")
+  .setOutputCol("tokens")
+  .setMode("EXTENDED");
+DataFrame transformed = tokenizer.transform(df);
+```
 
 ## Known Issues
 
