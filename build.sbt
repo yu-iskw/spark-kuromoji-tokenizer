@@ -37,6 +37,7 @@ fork in Test := true
 javaOptions ++= Seq("-Xmx2G", "-XX:MaxPermSize=256m")
 
 libraryDependencies ++= Seq(
+  "junit" % "junit" % "4.12",
   "org.atilika.kuromoji" % "kuromoji" % "0.7.7",
   "org.scalatest" %% "scalatest" % "2.2.6" % "test"
 )

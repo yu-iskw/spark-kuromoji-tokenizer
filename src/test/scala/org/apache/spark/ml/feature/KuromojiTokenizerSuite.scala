@@ -19,26 +19,29 @@ package org.apache.spark.ml.feature
 
 import java.io.File
 
+import scala.beans.BeanInfo
+
 import org.atilika.kuromoji.{Tokenizer => KTokenizer}
 
 import org.apache.spark.SparkFunSuite
 import org.apache.spark.mllib.util.MLlibTestSparkContext
-import org.apache.spark.sql.Row
-import org.apache.spark.sql.types.{StringType, StructField, StructType}
+
+@BeanInfo
+case class TestText(text: String)
 
 class KuromojiTokenizerSuite extends SparkFunSuite with MLlibTestSparkContext {
 
   test("transform") {
 
     val data = Seq(
-      Row("天皇は、日本国の象徴であり日本国民統合の象徴であつて、この地位は、主権の存する日本国民の総意に基く。"),
-      Row("皇位は、世襲のものであつて、国会の議決した皇室典範 の定めるところにより、これを継承する。"),
-      Row("天皇の国事に関するすべての行為には、内閣の助言と承認を必要とし、内閣が、その責任を負ふ。"),
-      Row("天皇は、この憲法の定める国事に関する行為のみを行ひ、国政に関する権能を有しない。"),
-      Row("天皇は、法律の定めるところにより、その国事に関する行為を委任することができる。")
+      TestText("天皇は、日本国の象徴であり日本国民統合の象徴であつて、この地位は、主権の存する日本国民の総意に基く。"),
+      TestText("皇位は、世襲のものであつて、国会の議決した皇室典範 の定めるところにより、これを継承する。"),
+      TestText("天皇の国事に関するすべての行為には、内閣の助言と承認を必要とし、内閣が、その責任を負ふ。"),
+      TestText("天皇は、この憲法の定める国事に関する行為のみを行ひ、国政に関する権能を有しない。"),
+      TestText("天皇は、法律の定めるところにより、その国事に関する行為を委任することができる。")
     )
-    val schema = StructType(Seq(StructField("text", StringType, false)))
-    val df = sqlContext.createDataFrame(sc.parallelize(data), schema)
+    val rdd = sc.parallelize(data)
+    val df = sqlContext.createDataFrame(rdd)
 
     val kuromoji = new KuromojiTokenizer()
       .setInputCol("text")
