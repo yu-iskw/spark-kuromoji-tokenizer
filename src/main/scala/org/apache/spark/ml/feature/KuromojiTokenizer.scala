@@ -69,7 +69,7 @@ class KuromojiTokenizer(override val uid: String)
       throw new IllegalArgumentException(s"Output column ${$(outputCol)} already exists.")
     }
     val outputFields = schema.fields :+
-      StructField($(outputCol), StringType, nullable = false)
+      StructField($(outputCol), new ArrayType(StringType, true), nullable = false)
     StructType(outputFields)
   }
 
