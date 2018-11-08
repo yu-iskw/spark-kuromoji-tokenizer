@@ -18,15 +18,13 @@
 package org.apache.spark.ml.feature
 
 import scala.collection.JavaConverters._
-
 import org.atilika.kuromoji.{Token => KToken, Tokenizer => KTokenizer}
-
 import org.apache.spark.annotation.Experimental
 import org.apache.spark.ml.Transformer
 import org.apache.spark.ml.param.shared.{HasInputCol, HasOutputCol}
 import org.apache.spark.ml.param.{Param, ParamMap, Params}
 import org.apache.spark.ml.util.{DefaultParamsReadable, DefaultParamsWritable, Identifiable}
-import org.apache.spark.sql.DataFrame
+import org.apache.spark.sql.{DataFrame, Dataset}
 import org.apache.spark.sql.functions._
 import org.apache.spark.sql.types._
 
@@ -73,12 +71,24 @@ class KuromojiTokenizer(override val uid: String)
     StructType(outputFields)
   }
 
-  override def transform(dataset: DataFrame): DataFrame = {
+  override def transform(dataset: Dataset[_]): DataFrame = {
+
+    val tokenUDF = udf { text: String =>
+      val modeClass = KuromojiTokenizer.addressMode($(mode))
+      $(dictPath) match {
+        case KuromojiTokenizer.DICT_PATH_NULL_VALUE =>
+          CustomKuromojiTokenizer.tokenize(text, modeClass).map(_.getSurfaceForm)
+        case _ =>
+          CustomKuromojiTokenizer.tokenize(text, modeClass, $(dictPath)).map(_.getSurfaceForm)
+      }
+    }
+
     transformSchema(dataset.schema, logging = true)
-    dataset.withColumn($(outputCol),
-      callUDF(this.createTransformFunc, outputDataType, dataset($(inputCol))))
+    dataset.withColumn($(outputCol),tokenUDF( dataset($(inputCol))))
+
   }
 
+  /*
   protected def createTransformFunc: String => Seq[String] = {
     val modeClass = KuromojiTokenizer.addressMode($(mode))
     $(dictPath) match {
@@ -88,6 +98,7 @@ class KuromojiTokenizer(override val uid: String)
         CustomKuromojiTokenizer.tokenize(_, modeClass, $(dictPath)).map(_.getSurfaceForm)
     }
   }
+  */
 
   protected def outputDataType: DataType = new ArrayType(StringType, true)
 
@@ -155,11 +166,14 @@ object CustomKuromojiTokenizer {
 
   def tokenize(text: String, mode: KTokenizer.Mode): Seq[KToken] = {
     val tokenizer = KTokenizer.builder().mode(mode).build()
-    tokenizer.tokenize(text).asScala.toSeq
+    //tokenizer.tokenize(text).asScala.dropWhile(_.getSurfaceForm == ' ').toSeq
+     tokenizer.tokenize(text).asScala.toSeq.filter(_.getSurfaceForm.trim().nonEmpty)
+  
   }
 
   def tokenize(text: String, mode: KTokenizer.Mode, dictPath: String): Seq[KToken] = {
     val tokenizer = KTokenizer.builder().mode(mode).userDictionary(dictPath).build()
-    tokenizer.tokenize(text).asScala.toSeq
+    tokenizer.tokenize(text).asScala.toSeq.filter(_.getSurfaceForm.trim().nonEmpty)
+    //tokenizer.tokenize(text).asScala.toSeq
   }
 }
